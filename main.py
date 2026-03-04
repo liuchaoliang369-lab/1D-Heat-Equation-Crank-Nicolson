@@ -1,4 +1,4 @@
-################################
+# -*- coding: utf-8 -*-
 
 # main_skeleton.py  —— 请按顺序实现 TODO
 import numpy as np
