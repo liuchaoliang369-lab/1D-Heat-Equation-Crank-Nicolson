@@ -7,7 +7,6 @@
 - 空间收敛阶（L2）估计 ≈  1.99984（接近理论二阶）。
 结果展示：
 ![result](result.png)
-![convergence](result.png)
 
 运行：
 ```bash
