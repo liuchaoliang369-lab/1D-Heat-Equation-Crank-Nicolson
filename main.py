@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# main_skeleton.py  —— 请按顺序实现 TODO
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+
 
 def thomas(a, b, c, d):
     """
@@ -33,11 +34,11 @@ def thomas(a, b, c, d):
 
 def crank_nicolson_step(u, dx, dt):
     """
-    TODO: 给定当前时刻的 u（包含边界），做一步 Crank–Nicolson 时间推进并返回下一时刻的 u_new（包含边界）。
+    给定当前时刻的 u（包含边界），做一步 Crank–Nicolson 时间推进并返回下一时刻的 u_new（包含边界）。
     说明：边界点 u[0] 和 u[-1] 视作 Dirichlet 已知，不更新。
     提示：内部构造三对角系数 a,b,c 和 RHS d，然后调用 thomas 解出内部节点。
     """
-    # ====== START TODO ======
+
     r = dt/pow(dx,2)
     n = len(u)
     a = [-r/2 for _ in range(n-3)]
@@ -53,7 +54,7 @@ def crank_nicolson_step(u, dx, dt):
     u_new.append(u[-1])
     u_new.insert(0,u[0])
     return u_new
-    # ====== END TODO ======
+
 
 def analytic_solution(x, t):
     # 解析解：初值 u(x,0)=sin(pi x)，零 Dirichlet
@@ -61,8 +62,7 @@ def analytic_solution(x, t):
 
 def run_single_case(nx=101, dt_factor=0.4, T=0.1):
     """
-    TODO: 用 crank_nicolson_step 反复推进到时间 T 并返回 (x, u_numeric, u_exact, l2_err, max_err)
-    要点：
+    用 crank_nicolson_step 反复推进到时间 T 并返回 (x, u_numeric, u_exact, l2_err, max_err)
       - 构造网格 x 在 [0,1] 上 nx 点
       - dx = x[1]-x[0]
       - dt = dt_factor * dx**2, 然后计算 tsteps = ceil(T/dt) 并调整 dt = T/tsteps（使得整步到达 T）
@@ -70,7 +70,6 @@ def run_single_case(nx=101, dt_factor=0.4, T=0.1):
       - 通过循环调用 crank_nicolson_step 得到 u_T
       - 计算 L2 误差近似 sqrt(sum((u-u_ex)**2)*dx) 与 max abs error
     """
-    # ====== START TODO ======
     x = np.linspace(0,1,nx)
     dx = x[1] - x[0]
     dt = dt_factor * dx**2
@@ -88,10 +87,73 @@ def run_single_case(nx=101, dt_factor=0.4, T=0.1):
     l2_err = np.sqrt(sum((u_numeric - u_exact) ** 2) * dx)
     max_err = np.max(np.abs(u_numeric - u_exact))
     return (x,u_numeric,u_exact,l2_err,max_err)
-    # ====== END TODO ======
 
 # ------------------------------
-# 单元测试与验证（你运行本文件查看输出）
+#收敛阶验证
+def convergence_order():
+    NX = [11,21,31,41,51,61,71,81,91,101,201]
+    r = [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2,2.2]
+
+
+    n = len(NX)
+
+    x = range(1,n)
+    #注：dt_factor = dt/(dx**2)
+
+    # 网格收敛性
+    res = [run_single_case(nx, dt_factor=0.4, T=0.1) for nx in NX]
+    L2_err_x = [i[3] for i in res]
+
+    p_x_l2 =[np.log(L2_err_x[i-1]/L2_err_x[i])/np.log((NX[i]-1)/(NX[i-1]-1)) for i in range(1,n)]
+    print("网格变化：",NX)
+    print("网格L2误差变化",L2_err_x)
+    print("收敛阶",p_x_l2)
+
+    Max_err_x = [i[4] for i in res]
+    p_x_m = [np.log(Max_err_x[i - 1] / Max_err_x[i]) / np.log((NX[i] - 1) / (NX[i - 1] - 1)) for i in range(1, n)]
+
+    #时间收敛性
+    res_2 = [run_single_case(nx=101, dt_factor = y, T=0.1) for y in r]
+    L2_err_t = [i[3] for i in res_2]
+
+    p_t_l2 = [np.log(L2_err_t[i - 1] / L2_err_t[i]) / np.log((r[i]) / (r[i-1])) for i in range(1, n)]
+
+    Max_err_t = [i[4] for i in res_2]
+    p_t_m = [np.log(Max_err_t[i - 1] / Max_err_t[i]) / np.log((r[i]) / (r[i-1])) for i in range(1, n)]
+
+    print("时间变化dt=r*dx**2",r)
+    print("时间L2误差变化",L2_err_t)
+    print("收敛阶",p_t_l2)
+
+    plt.rcParams['font.sans-serif'] = ['SimHei'] # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
+    plt.subplot(2, 2, 1)
+    plt.plot(NX,L2_err_x,label='L2 error x')
+    plt.plot(NX, Max_err_x,label='Max error x')
+    plt.title('网格误差变化图')
+    plt.legend()
+
+    plt.subplot(2, 2, 2)
+    plt.plot(x,p_x_l2,'r+', label='L2 收敛阶 x')
+    plt.plot(x,p_x_m,'b.', label = 'Max error收敛阶 x')
+    plt.title('网格收敛阶')
+    plt.legend()
+
+    plt.subplot(2, 2, 3)
+    plt.plot(r, L2_err_t, label='L2 error t')
+    plt.plot(r, Max_err_t, label='Max error t')
+    plt.title('时间误差变化图')
+    plt.legend()
+
+    plt.subplot(2, 2, 4)
+    plt.plot(x, p_t_l2, 'r+', label='L2 收敛阶 t')
+    plt.plot(x, p_t_m, 'b.', label='Max error收敛阶 t')
+    plt.title('时间收敛阶')
+    plt.legend()
+
+    plt.show()
+
 # ------------------------------
 if __name__ == "__main__":
     # 1) 测试 Thomas：解已知小系统 Ax = d（A 为 tridiag）
@@ -116,7 +178,7 @@ if __name__ == "__main__":
         print(e)
         print("请先实现 thomas 函数")
 
-    # 2) 测试 Crank-Nicolson 完整流程（若你已实现）
+    # 2) 测试 Crank-Nicolson 完整流程
     try:
         x, u_num, u_ex, l2, mx = run_single_case(nx=101, dt_factor=0.4, T=0.1)
         print("CN demo: L2 =", l2, "max =", mx)
@@ -125,3 +187,28 @@ if __name__ == "__main__":
     except NotImplementedError as e:
         print(e)
         print("先实现 run_single_case（以及上游函数）再运行完整测试")
+
+    #收敛阶测试
+    try:
+        convergence_order()
+    except Exception as e:
+        print(f'函数运行出错{e}')
+        print("请先修正 convergence_order() 函数")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
