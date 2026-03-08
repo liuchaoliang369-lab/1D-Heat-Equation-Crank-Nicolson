@@ -8,7 +8,11 @@
 结果展示：
 ![result](result.png)
 
+-时间收敛阶 （L2） 估计 ≈2.0290（接近理论二阶）
+结果展示：
+![timetest](timetest.png)
 运行：
 ```bash
 pip install -r requirements.txt
 python main.py
+python timetest.py

@@ -1,8 +1,9 @@
-#
+# -*- coding: utf-8 -*-
 
 import numpy as np
 from main import run_single_case
 import math
+import matplotlib.pyplot as plt
 
 def time_convergence_test(nx=401, dt_list=None, T=0.1):
     if dt_list is None:
@@ -29,5 +30,48 @@ def time_convergence_test(nx=401, dt_list=None, T=0.1):
         print(f"时间收敛阶dt[{i}]和dt[{i+1}] ≈ {p:.4f}")
     return dt_list, errs, pts
 
+def picture_time_convergence(dt_list, errs, pts):
+    x = np.linspace(0,1,len(pts))
+    plt.rcParams['font.sans-serif'] = ['SimHei'] # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
+    plt.subplot(2, 2, 1)
+    plt.plot(dt_list,errs,'r',label = '误差变化图')
+
+    plt.title('误差随时间步长的变化图')
+    plt.legend()
+
+    plt.subplot(2, 2, 4)
+    plt.plot(x,pts,'b.',label = '收敛阶变化')
+    plt.title('收敛阶变化图')
+    plt.legend()
+
+    plt.show()
 if __name__ == "__main__":
     dt_list, errs, pts = time_convergence_test(nx=401)
+    picture_time_convergence(dt_list, errs, pts)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
